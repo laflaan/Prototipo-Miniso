@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guía Toy Story Miniso Chile · Prototipo editable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{--red:#E4002B;--red-d:#B8001F;--ink:#222222;--mut:#6A6A6A;--bg:#FFFFFF;--soft:#FFF4F6;--p1:#FFE3E8;--p2:#FFBFCA;--line:#F0D9DE;--sun:#FFC72C;--card:#FFFFFF;--pp:#FFF9FA;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#F4F0F1;--mut:#B9AFB2;--bg:#1A1617;--soft:#2A2224;--p1:#3A2329;--p2:#5C2A35;--line:#3E3033;--card:#241E20;--pp:#211B1D}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,Segoe UI,Arial,sans-serif;font-size:17px;line-height:1.6}
+h1,h2,h3,.brand,.btn{font-family:Poppins,Nunito,system-ui,Arial,sans-serif}
+h1{font-size:clamp(30px,5vw,50px);line-height:1.08;margin:.2em 0 .35em;letter-spacing:-.02em}
+a{color:var(--red)}
+.wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+
+/* Capa de Bloqueo por Contraseña */
+#gatekeeper {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.gate-box {
+  background: var(--card);
+  color: var(--ink);
+  padding: 36px 28px;
+  border-radius: 24px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+.gate-box h2 { margin-top: 0; font-size: 24px; }
+.gate-box input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  margin: 14px 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+.gate-box button {
+  width: 100%;
+  padding: 12px;
+  background: var(--red);
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  font: 700 16px Poppins, sans-serif;
+  cursor: pointer;
+}
+.gate-err { color: var(--red); font-weight: 700; font-size: 14px; margin-top: 8px; min-height: 1.2em; }
+
+/* Estilos de la página */
+header.top{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:18px;height:76px}
+.brand{color:var(--red);font-weight:800;font-size:21px;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--red);color:#fff;font-weight:700;padding:12px 24px;cursor:pointer;text-decoration:none}
+.hero{padding:40px 0}
+.ed-btn{position:fixed;right:18px;bottom:18px;z-index:50;background:var(--red);color:#fff;border:0;border-radius:999px;padding:12px 18px;font:700 15px Poppins,sans-serif;cursor:pointer}
+.ed{position:fixed;top:0;left:0;height:100%;width:min(420px,100%);background:var(--card);z-index:65;border-right:1px solid var(--line);transform:translateX(-105%);transition:transform .3s;padding:20px;overflow-y:auto}
+.ed.on{transform:none}
+.ed input, .ed textarea{width:100%;padding:10px;margin-bottom:12px;border:2px solid var(--line);border-radius:10px;font:inherit}
+.toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-weight:700;z-index:100;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- Pantalla de Protección -->
+<div id="gatekeeper">
+  <div class="gate-box">
+    <h2>Acceso Restringido</h2>
+    <p style="font-size: 14px; color: var(--mut);">Ingresa la contraseña para ver y editar el prototipo:</p>
+    <input type="password" id="passInput" placeholder="Contraseña">
+    <button id="passBtn">Ingresar</button>
+    <div class="gate-err" id="passErr"></div>
+  </div>
+</div>
+
+<!-- Contenido del Sitio -->
+<header class="top"><div class="wrap">
+  <a class="brand" href="#" id="brandName">MINISO</a>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1 id="heroH1">Guía Toy Story Miniso Chile</h1>
+    <p id="heroTagline" style="font-size: 19px; color: var(--mut);">Todo lo que Miniso tiene de Toy Story, ordenado según lo que necesitas.</p>
+  </section>
+</main>
+
+<button class="ed-btn" id="edBtn">Editar contenido</button>
+<aside class="ed" id="ed">
+  <h2>Editor de Contenido</h2>
+  <label>Título H1</label>
+  <input type="text" id="edH1">
+  <label>Bajada / Descripción</label>
+  <textarea id="edTagline" rows="4"></textarea>
+  <button class="btn" id="saveBtn">Guardar cambios</button>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 1. Configuración de la Contraseña
+const PASS_CORRECTA = "Agencia Prisma";
+
+const gate = document.getElementById('gatekeeper');
+const passInput = document.getElementById('passInput');
+const passBtn = document.getElementById('passBtn');
+const passErr = document.getElementById('passErr');
+
+function checkPass() {
+  if (passInput.value === PASS_CORRECTA) {
+    gate.style.display = 'none';
+    sessionStorage.setItem('site_auth', 'true');
+  } else {
+    passErr.textContent = 'Contraseña incorrecta. Inténtalo de nuevo.';
+  }
+}
+
+passBtn.onclick = checkPass;
+passInput.onkeydown = (e) => { if (e.key === 'Enter') checkPass(); };
+
+if (sessionStorage.getItem('site_auth') === 'true') {
+  gate.style.display = 'none';
+}
+
+// 2. Lógica de Contenido Editable
+let contentData = {
+  h1: "Guía Toy Story Miniso Chile",
+  tagline: "Todo lo que Miniso tiene de Toy Story, ordenado según lo que necesitas."
+};
+
+const savedData = localStorage.getItem('site_content');
+if (savedData) {
+  contentData = JSON.parse(savedData);
+}
+
+function updateUI() {
+  document.getElementById('heroH1').textContent = contentData.h1;
+  document.getElementById('heroTagline').textContent = contentData.tagline;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+document.getElementById('edBtn').onclick = () => {
+  const ed = document.getElementById('ed');
+  ed.classList.toggle('on');
+  if (ed.classList.contains('on')) {
+    document.getElementById('edH1').value = contentData.h1;
+    document.getElementById('edTagline').value = contentData.tagline;
+  }
+};
+
+document.getElementById('saveBtn').onclick = () => {
+  contentData.h1 = document.getElementById('edH1').value;
+  contentData.tagline = document.getElementById('edTagline').value;
+  localStorage.setItem('site_content', JSON.stringify(contentData));
+  updateUI();
+  document.getElementById('ed').classList.remove('on');
+  showToast('¡Cambios guardados con éxito!');
+};
+
+updateUI();
+</script>
+</body>
+</html>
