@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guía Toy Story Miniso Chile · Prototipo editable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+<!-- SDKs de Firebase para Persistencia en Tiempo Real -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<style>
+:root{--red:#E4002B;--red-d:#B8001F;--ink:#222222;--mut:#6A6A6A;--bg:#FFFFFF;--soft:#FFF4F6;--p1:#FFE3E8;--p2:#FFBFCA;--line:#F0D9DE;--sun:#FFC72C;--card:#FFFFFF;--pp:#FFF9FA;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#F4F0F1;--mut:#B9AFB2;--bg:#1A1617;--soft:#2A2224;--p1:#3A2329;--p2:#5C2A35;--line:#3E3033;--card:#241E20;--pp:#211B1D}}
+:root[data-theme="dark"]{--ink:#F4F0F1;--mut:#B9AFB2;--bg:#1A1617;--soft:#2A2224;--p1:#3A2329;--p2:#5C2A35;--line:#3E3033;--card:#241E20;--pp:#211B1D}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 96px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,Segoe UI,Arial,sans-serif;font-size:17px;line-height:1.6}
+h1,h2,h3,.brand,.btn,.pill{font-family:Poppins,Nunito,system-ui,Arial,sans-serif}
+h1{font-size:clamp(30px,5vw,50px);line-height:1.08;margin:.2em 0 .35em;letter-spacing:-.02em}
+h2{font-size:clamp(23px,3vw,31px);line-height:1.2;margin:0 0 .5em;letter-spacing:-.01em}
+h3{font-size:19px;margin:0 0 .35em}
+a{color:var(--red)}
+p{margin:0 0 1em;max-width:68ch}
+img{max-width:100%}
+.wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:6px}
+
+/* Encabezado */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:18px;height:76px}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--red);font-weight:800;font-size:21px;letter-spacing:.02em}
+.brand .logo{height:46px;width:auto;display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.search{flex:1;position:relative;max-width:430px}
+.search input{width:100%;border:2px solid var(--line);background:var(--soft);color:var(--ink);border-radius:999px;padding:10px 16px;font:inherit;font-size:15px}
+.search input:focus{border-color:var(--red);outline:none}
+.sugg{position:absolute;top:48px;left:0;right:0;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(90,0,20,.14);overflow:hidden;display:none}
+.sugg a{display:block;padding:10px 16px;text-decoration:none;color:var(--ink);font-size:15px}
+.sugg a:hover,.sugg a:focus{background:var(--soft)}
+.sugg small{color:var(--mut);display:block}
+nav.main{display:flex;gap:4px}
+nav.main a{text-decoration:none;color:var(--ink);font-weight:700;font-size:15px;padding:8px 12px;border-radius:999px}
+nav.main a:hover{background:var(--soft)}
+.pts{font-family:Poppins,sans-serif;font-weight:700;font-size:14px;background:var(--red);color:#fff;border-radius:999px;padding:7px 13px;white-space:nowrap;border:0;cursor:pointer}
+@media (max-width:860px){nav.main{display:none}.brand span{display:none}}
+
+/* Botones y Secciones */
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--red);color:#fff;font-weight:700;font-size:16px;padding:13px 24px;text-decoration:none;cursor:pointer}
+.btn:hover{background:var(--red-d)}
+.btn.ghost{background:transparent;color:var(--red);box-shadow:inset 0 0 0 2px var(--red)}
+.btn.ghost:hover{background:var(--soft)}
+.btn.small{font-size:14px;padding:9px 16px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding:26px 0 46px}
+.hero .lead{font-size:19px;color:var(--mut);max-width:52ch}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
+.boxstage{background:var(--red);border-radius:36px;min-height:390px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;color:#fff;overflow:hidden}
+
+/* Editor Panel Flotante */
+.ed-btn{position:fixed;right:18px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--red);color:#fff;border:0;border-radius:999px;padding:12px 18px;font:700 15px Poppins,sans-serif;cursor:pointer;box-shadow:0 10px 26px rgba(150,0,30,.3)}
+@media (max-width:700px){.ed-btn{bottom:calc(128px + env(safe-area-inset-bottom,0px));padding:9px 14px;font-size:13px}}
+.ed{position:fixed;top:0;left:0;height:100%;width:min(460px,100%);background:var(--card);z-index:65;border-right:1px solid var(--line);box-shadow:20px 0 50px rgba(0,0,0,.18);transform:translateX(-105%);transition:transform .3s;overflow-y:auto;padding:calc(20px + env(safe-area-inset-top,0px)) 22px calc(30px + env(safe-area-inset-bottom,0px))}
+.ed.on{transform:none}
+.ed input[type=text],.ed textarea,.ed select{width:100%;font:inherit;font-size:14px;padding:9px 11px;border:2px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.toast{position:fixed;left:50%;top:calc(84px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-weight:700;z-index:70;opacity:0;pointer-events:none;transition:opacity .25s;max-width:92vw;text-align:center}
+.toast.on{opacity:1}
+footer{background:var(--soft);padding:34px 0 90px;font-size:14px;color:var(--mut);margin-top:30px}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+ <a class="brand" href="#/guia/toy-story/"><img class="logo" id="brandLogo" src="" alt="Miniso"><span id="brandName" class="sr">MINISO</span></a>
+ <div class="search"><input id="q" type="text" placeholder="Busca: peluche, blind box..." autocomplete="off"><div class="sugg" id="sugg"></div></div>
+ <nav class="main" id="nav"></nav>
+ <button class="pts" id="pts">♥ 0 pts</button>
+</div></header>
+
+<main id="app"></main>
+<footer><div class="wrap" id="foot"></div></footer>
+
+<button class="ed-btn" id="edBtn">Editar contenido</button>
+<aside class="ed" id="ed" aria-label="Editor de contenido"></aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script id="cfg" type="application/json">
+{
+  "marca": {
+    "nombre": "MINISO",
+    "rojo": "#E4002B",
+    "rojo_oscuro": "#B8001F",
+    "tinta": "#222222",
+    "suave": "#FFF4F6",
+    "tagline": "Todo lo que Miniso tiene de Toy Story, ordenado según lo que necesitas.",
+    "footer": "Prototipo editable con persistencia de datos en Firebase."
+  },
+  "paginas": {
+    "pp": {
+      "name": "Guía Toy Story",
+      "h1": "Guía Toy Story Miniso Chile: coleccionables y hogar",
+      "title": "Productos Toy Story en Chile | Miniso",
+      "meta": "Guía de productos de la colección Pixar x Miniso."
+    }
+  }
+}
+</script>
+
+<script>
+// Inicialización de Firebase (Reemplazar credenciales según tu proyecto de Firebase)
+const firebaseConfig = {
+  apiKey: "AIzaSyDemoKeyForRealtimeSync00000000",
+  authDomain: "miniso-prototipo.firebaseapp.com",
+  projectId: "miniso-prototipo",
+  storageBucket: "miniso-prototipo.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:demo123456"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+
+let CFG = JSON.parse(document.getElementById('cfg').textContent);
+
+// Cargar la configuración guardada desde la base de datos Firestore
+async function loadRemoteConfig() {
+  try {
+    const doc = await db.collection('settings').doc('site_config').get();
+    if (doc.exists) {
+      CFG = doc.data();
+      renderApp();
+      toast("Contenido actualizado en tiempo real desde la nube");
+    }
+  } catch (e) {
+    console.log("Modo offline o sin proyecto remoto:", e);
+  }
+}
+
+// Guardar los cambios editados en la nube para todos los usuarios
+async function saveRemoteConfig() {
+  try {
+    await db.collection('settings').doc('site_config').set(CFG);
+    toast("¡Cambios publicados en la nube para todos los usuarios!");
+  } catch (e) {
+    toast("Error al publicar en la nube");
+  }
+}
+
+function toast(t){
+  const e=document.getElementById('toast');
+  e.textContent=t;
+  e.classList.add('on');
+  setTimeout(()=>e.classList.remove('on'),3000);
+}
+
+function renderApp() {
+  document.getElementById('brandName').textContent = CFG.marca.nombre;
+  document.getElementById('app').innerHTML = `
+    <div class="wrap">
+      <section class="hero">
+        <div>
+          <h1>${CFG.paginas.pp.h1}</h1>
+          <p class="lead">${CFG.marca.tagline}</p>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+document.getElementById('edBtn').onclick = () => {
+  const ed = document.getElementById('ed');
+  ed.classList.toggle('on');
+  if (ed.classList.contains('on')) {
+    ed.innerHTML = `
+      <h2>Editor de Contenido</h2>
+      <label>Título H1</label>
+      <input type="text" id="edH1" value="${CFG.paginas.pp.h1}">
+      <label>Tagline</label>
+      <textarea id="edTagline">${CFG.marca.tagline}</textarea>
+      <br><br>
+      <button class="btn" id="saveBtn">Publicar para todos</button>
+    `;
+    document.getElementById('saveBtn').onclick = () => {
+      CFG.paginas.pp.h1 = document.getElementById('edH1').value;
+      CFG.marca.tagline = document.getElementById('edTagline').value;
+      renderApp();
+      saveRemoteConfig();
+    };
+  }
+};
+
+loadRemoteConfig();
+renderApp();
+</script>
+</body>
+</html>
